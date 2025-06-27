@@ -1,0 +1,46 @@
+<!-- filepath: e:\WAC\eportal\ordertrack\core\templates\seller_products.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Products</h2>
+    {% if products %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.category.name }}</td>
+                    <td>
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+        <span style="text-decoration: line-through; color: #888;">₹{{ product.price }}</span>
+        <span style="color: #d9534f;">₹{{ product.discounted_price }}</span>
+        <span class="badge bg-success">{{ product.discount_percent }}% OFF</span>
+    {% else %}
+        ₹{{ product.price }}
+    {% endif %}
+</td>
+                    <td>{{ product.is_active|yesno:"Yes,No" }}</td>
+                    <td>
+                        <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No products found.</p>
+    {% endif %}
+    <a href="{% url 'product_create' %}" class="btn btn-success mt-3">Add New Product</a>
+</div>
+{% endblock %}

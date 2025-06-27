@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Categories - OrderTrack{% endblock %}
+
+{% block content %}
+    <section class="category-section py-4">
+        <div class="container">
+            <h2>Browse Categories</h2>
+            {% if categories %}
+                <div class="grid grid-4">
+                    {% for category in categories %}
+                        <div class="card category-card">
+                            {% if category.image %}
+                                <div class="d-flex align-items-center justify-content-center bg-white" style="height: 180px; width: 100%; overflow: hidden;">
+                                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid" style="max-height: 160px; max-width: 100%; object-fit: contain; display: block; margin: auto;">
+                                </div>
+                            {% else %}
+                                <div class="card-img" style="background: #F7FAFA; text-align: center; line-height: 180px;">No Image</div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h3 class="card-title">{{ category.name }}</h3>
+                                <a href="{% url 'product_list' %}?category={{ category.id }}" class="btn btn-primary">View Products</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-center">No categories available.</p>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

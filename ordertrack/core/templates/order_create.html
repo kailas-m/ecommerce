@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load product_filters %}
+{% block title %}Create Order{% endblock %}
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <h2 class="mb-4 text-center">Create Order</h2>
+        <div class="form-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form method="post" action="{% url 'create_order' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="product_id" class="form-label">Product</label>
+                    <input type="hidden" name="product_id" value="{{ item_form.product_id }}">
+                    {% if item_form.product_id %}
+                        {% with product=products|filter_product:item_form.product_id %}
+                            <p>{{ product.name }} - ₹{{ product.price }}</p>
+                        {% endwith %}
+                    {% else %}
+                        <select name="product_id" id="product_id" class="form-control" required>
+                            <option value="">Select a product</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }} - ${{ product.price }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="quantity" class="form-label">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" value="{{ item_form.quantity }}" min="1" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select name="payment_method" id="payment_method" class="form-control" required>
+                        <option value="">Select payment method</option>
+                        <option value="card">Credit/Debit Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="cod">Cash on Delivery</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Place Order</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+<!-- filepath: e:\WAC\eportal\ordertrack\core\templates\contact_us.html -->
+{% extends 'base.html' %}
+{% block title %}Contact Us - OrderTrack{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container" style="max-width: 500px;">
+        <h2 class="mb-4 text-center">Contact Us</h2>
+        <form method="post" class="card p-4 shadow-sm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Your Email</label>
+                <input type="email" class="form-control" value="{{ user.email }}" disabled>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Reason</label>
+                <input type="text" name="reason" class="form-control" required placeholder="Reason for contacting">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Message</label>
+                <textarea name="message" class="form-control" rows="5" required placeholder="Type your message here"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Send Message</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

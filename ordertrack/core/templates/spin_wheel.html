@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Spin the Wheel - OrderTrack{% endblock %}
+{% block content %}
+<div class="container spin-wheel-container">
+    <h1 class="text-center my-4"><i class="fas fa-coins"></i> Spin the Wheel & Win Supercoins!</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card spin-card">
+                <div class="card-body text-center">
+                    {% if not order.has_spun %}
+                        <!-- Show scratch card -->
+                        <h5 class="card-title">You're Eligible for a Bonus Spin!</h5>
+                        <p class="card-text">Order #{{ order.id }} - Spin to win up to 100 Supercoins!</p>
+                        <div id="scratch-container" class="scratch-container text-center">
+                            <canvas id="scratch-card"
+                                    width="300"
+                                    height="150"
+                                    data-product-price="{{ order.product.price }}"
+                                    {% if order.has_spun %}data-redeemed-prize="{{ order.spin_prize }}"{% else %}data-redeemed-prize=""{% endif %}
+                                    style="border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></canvas>
+                            <form method="post" action="{% url 'spin_wheel' order.id %}" id="claim-form" class="mt-3 hidden">
+                                {% csrf_token %}
+                                <input type="hidden" name="prize" id="prize-value">
+                                <button type="submit" id="claim-btn" class="btn btn-success">Claim Reward</button>
+                            </form>
+                            <div id="result" class="result-text mt-3 hidden"></div>
+                        </div>
+                    {% else %}
+                        <!-- Show congratulations and prize info -->
+                        <h5 class="card-title">Congratulations!</h5>
+                        <p class="card-text">You won {{ supercoin_amount }} Supercoins for Order #{{ order.id }}!</p>
+                        <p class="card-text">Your prize has been added to your account balance.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary back-btn">Back to Orders</a>
+    </div>
+</div>
+<script src="{% static 'js/static_js_spinwheel.js' %}"></script>
+{% endblock %}
+
+
+

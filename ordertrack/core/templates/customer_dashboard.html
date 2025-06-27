@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Account - OrderTrack{% endblock %}
+
+{% block content %}
+    <section class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Welcome, {{ customer.name }}</h1>
+
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-4">Your Wishlist</h2>
+            {% if wishlist %}
+                <div class="grid grid-4 gap-6">
+                    {% for product in wishlist|slice:":4" %}
+                        <div class="card product-card">
+                            <div class="card-img">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-contain">
+                                {% else %}
+                                    <p class="text-center py-16">No Image</p>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h2 class="card-title">{{ product.name }}</h2>
+                                <div class="price mb-4">
+                                    {% if product.discount_percent and product.discount_percent > 0 %}
+                                        <span class="line-through text-gray-500">₹{{ product.price|floatformat:2 }}</span>
+                                        <span>₹{{ product.discounted_price|floatformat:2 }}</span>
+                                    {% else %}
+                                        <span>₹{{ product.price|floatformat:2 }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-actions gap-2">
+                                    <a href="{% url 'product_detail' product.id %}" class="btn btn-outline">View Details</a>
+                                    <form method="post" action="{% url 'wishlist_remove' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-6">
+                    <a href="{% url 'buyer_wishlist' %}" class="btn btn-primary">View All Wishlist Items</a>
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <p>Your wishlist is empty.</p>
+                        <a href="{% url 'product_list' %}" class="btn btn-primary mt-4">Shop Now</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-bold mb-4">Your Orders</h2>
+            {% if orders %}
+                <div class="grid grid-cols-1 gap-6">
+                    {% for order in orders %}
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Order #{{ order.id }}</h3>
+                                <p class="card-text">Date: {{ order.created_at|date:"M d, Y" }}</p>
+                                <p class="card-text">Total: ₹{{ order.total_price|floatformat:2 }}</p>
+                                <div class="card-actions">
+                                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <p>You haven't placed any orders yet.</p>
+                        <a href="{% url 'product_list' %}" class="btn btn-primary mt-4">Shop Now</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

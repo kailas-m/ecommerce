@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delivery Profile{% endblock %}
+
+{% block content %}
+<section class="delivery-profile py-4">
+    <div class="container" style="max-width: 950px; margin: 0 auto; padding: 0 1rem;">
+        <h1 class="text-center mb-4">Delivery Profile</h1>
+        <div class="row g-4 align-items-start justify-content-center">
+            <!-- Profile Image Card -->
+            <div class="col-auto">
+                <div class="card shadow-sm" style="width: 200px;">
+                    <div class="card-body text-center d-flex flex-column align-items-center justify-content-center">
+                        {% if delivery_profile.profile_picture %}
+                            <img src="{{ delivery_profile.profile_picture.url }}" alt="Current Photo" class="mb-2" style="width: 90px; height: 90px; object-fit: cover; border-radius: 50%;">
+                        {% endif %}
+                        <h5 class="mt-2 mb-1">{{ delivery_profile.user.username }}</h5>
+                        <p class="mb-0 text-muted" style="font-size: 0.95em;">Joined {{ delivery_profile.user.date_joined|date:"F Y" }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Main Content -->
+            <div class="col" style="min-width: 320px; max-width: 700px;">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="quick-link-card h-100 text-center py-3">
+                            <i class="fas fa-truck fa-2x mb-2"></i>
+                            <h3>{{ total_deliveries }}</h3>
+                            <p>Deliveries Completed</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="quick-link-card h-100 text-center py-3">
+                            <i class="fas fa-star fa-2x mb-2"></i>
+                            <h3>{{ avg_rating|floatformat:1|default:"0.0" }}/5</h3>
+                            <div class="rating mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= avg_rating|default:0 %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p>Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Delivery Information</h5>
+                                <p><strong>Username:</strong> {{ delivery_profile.user.username }}</p>
+                                <p><strong>Email:</strong> {{ delivery_profile.user.email }}</p>
+                                <p><strong>Phone:</strong> {{ delivery_profile.phone }}</p>
+                                <p><strong>Bio:</strong> {{ delivery_profile.bio|default:"No bio provided" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Edit Profile</h5>
+                                <form method="post" enctype="multipart/form-data" class="form-container">
+                                    {% csrf_token %}
+                                    <div class="form-group mb-2">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" value="{{ delivery_profile.user.username }}" disabled>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" value="{{ delivery_profile.user.email }}" disabled>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="form-label">Bio</label>
+                                        {{ form.bio }}
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Phone</label>
+                                        {{ form.phone }}
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Profile Picture</label>
+                                        {{ form.profile_picture }}
+                                    </div>
+                                    <div class="card-actions justify-content-center">
+                                        <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline">Cancel</a>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

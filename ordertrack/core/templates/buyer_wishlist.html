@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Your Wishlist{% endblock %}
+{% block content %}
+<h2>Your Wishlist</h2>
+{% if wishlist %}
+    <div class="grid grid-4">
+        {% for product in wishlist %}
+            <div class="card product-card">
+                <div class="card-img-top">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="text-center bg-light p-4">No Image</div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5>{{ product.name }}</h5>
+                    <p class="price">₹{{ product.discounted_price }}</p>
+                    <div class="mt-auto d-flex gap-2">
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm flex-fill">View Details</a>
+                        {% if user.is_authenticated and user.profile.role == 'buyer' and product.stock > 0 %}
+                            <form method="post" action="{% url 'add_to_cart' product.id %}" class="d-inline flex-fill">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Add to Cart</button>
+                            </form>
+                        {% endif %}
+                        {% if user.is_authenticated and user.profile.role == 'buyer' %}
+                            <form method="post" action="{% url 'wishlist_remove' product.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="wishlist-heart-btn" title="Remove from Wishlist">
+                                    <span class="wishlist-heart active">&#10084;</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>You have no items in your wishlist.</p>
+{% endif %}
+{% endblock %}

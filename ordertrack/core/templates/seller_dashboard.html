@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Seller Dashboard{% endblock %}
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <h2 class="mb-4">Your Products</h2>
+        <div class="card-actions mb-4">
+            <a href="{% url 'product_create' %}" class="btn btn-primary">Add New Product</a>
+        </div>
+        {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ product.name }}</h3>
+                    <p class="price">
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+                            <span style="text-decoration: line-through; color: #888;">₹{{ product.price }}</span>
+                            <span style="color: #d9534f;">₹{{ product.discounted_price }}</span>
+                            <span class="badge bg-success">{{ product.discount_percent }}% OFF</span>
+                        {% else %}
+                            ₹{{ product.price }}
+                        {% endif %}
+                    </p>
+                    <p class="stock {% if product.stock > 5 %}in-stock{% elif product.stock > 0 %}low-stock{% else %}out-of-stock{% endif %}">
+                        {{ product.stock }} in stock
+                    </p>
+                    <div class="card-actions">
+                        <a href="{% url 'product_edit' product.id %}" class="btn btn-outline">Edit</a>
+                        <a href="{% url 'product_delete' product.id %}" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">You haven't added any products yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

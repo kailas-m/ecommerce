@@ -1,0 +1,291 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OrderTrack{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+                <div class="header-flex">
+                    <div class="logo">
+                        <a href="{% url 'index' %}">
+                            <img src="{% static 'images/logo.png' %}" alt="OrderTrack Logo">
+                        </a>
+                    </div>
+                    <div class="website-name">
+                        <a href="{% url 'index' %}">OrderTrack</a>
+                    </div>
+                    <form action="{% url 'product_list' %}" method="get" class="search-bar">
+                        <select class="search-select" name="category">
+                            <option value="">All</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" class="search-input" name="q" placeholder="Search products..." value="{{ request.GET.q|default_if_none:'' }}">
+                        <select class="search-select" name="sort">
+                            <option value="">Sort By</option>
+                            <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
+                            <option value="discount_desc" {% if request.GET.sort == "discount_desc" %}selected{% endif %}>Discount: High to Low</option>
+                            <option value="rating_desc" {% if request.GET.sort == "rating_desc" %}selected{% endif %}>Rating: High to Low</option>
+                        </select>
+                        <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+                    </form>
+                    <div class="user-actions">
+                        <a href="{% url 'cart' %}" class="cart-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-count">{{ request.session.cart|default:""|length }}</span>
+                        </a>
+                        <a href="{% url 'buyer_wishlist' %}" class="wishlist-icon" title="Wishlist">
+                            <i class="fas fa-heart"></i>
+                            {% if user.is_authenticated and user.profile.role == 'buyer' %}
+                                <span class="wishlist-count">{{ wishlist_count|default:"0" }}</span>
+                            {% endif %}
+                        </a>
+                        {% if user.is_authenticated and user.profile.role == 'buyer' %}
+                            <div class="supercoin-badge bg-gradient-to-r from-anime-primary to-anime-secondary text-white px-3 py-1 rounded-full shadow-md ml-2">
+                                <i class="fas fa-coins mr-1"></i> {{ supercoin_balance|default:"0" }} SC
+                            </div>
+                        {% endif %}
+                        <!-- Switch-style dark mode toggle -->
+<button id="theme-toggle" class="btn btn-outline-secondary" type="button" title="Toggle dark mode" style="margin-left: 1rem;">
+    <i class="fas fa-moon"></i>
+</button>
+                        <div class="dropdown">
+                            <button class="dropbtn">
+                                <i class="fas fa-user"></i>
+                                <span class="dropbtn-text">
+                                    {% if user.is_authenticated %}
+                                        {{ user.username }}
+                                    {% else %}
+                                        Hello, Sign in
+                                    {% endif %}
+                                </span>
+                                <i class="fas fa-chevron-down dropbtn-caret"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                {% if user.is_authenticated %}
+                                    {% if user.profile.role == 'seller' %}
+                                        <a href="{% url 'seller_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Seller Dashboard</a>
+                                        <a href="{% url 'seller_profile' %}"><i class="fas fa-user"></i> Seller Profile</a>
+                                        <a href="{% url 'product_create' %}"><i class="fas fa-plus"></i> Add Product</a>
+                                    {% elif user.profile.role == 'buyer' %}
+                                        <a href="{% url 'customer_profile' %}"><i class="fas fa-user"></i> Your Account</a>
+                                        <a href="{% url 'order_history' %}"><i class="fas fa-history"></i> Your Orders</a>
+                                        <a href="{% url 'cart' %}"><i class="fas fa-shopping-cart"></i> Cart</a>
+                                    {% elif user.profile.role == 'delivery' %}
+                                        <a href="{% url 'delivery_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Delivery Dashboard</a>
+                                        <a href="{% url 'delivery_pending' %}"><i class="fas fa-truck"></i> Pending Orders</a>
+                                        <a href="{% url 'delivery_completed' %}"><i class="fas fa-check-circle"></i> Completed Orders</a>
+                                        <a href="{% url 'delivery_profile' %}"><i class="fas fa-user"></i> Profile</a>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <a href="#" onclick="this.closest('form').submit(); return false;"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+                                    </form>
+                                {% else %}
+                                    <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                                    <a href="{% url 'register_buyer' %}"><i class="fas fa-user-plus"></i> Create Buyer Account</a>
+                                    <a href="{% url 'register_seller' %}"><i class="fas fa-store"></i> Create Seller Account</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="header-bottom">
+            <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+                <div class="nav-row">
+                    <div class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <nav class="nav-links">
+                        <a href="{% url 'index' %}">Home</a>
+                        <a href="{% url 'category_list' %}">Categories</a>
+                        <a href="{% url 'product_list' %}">Today's Deals</a>
+                        <a href="{% url 'customer_list' %}">Customer Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Menu</span>
+            <span class="sidebar-close"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="sidebar-content">
+            <h3>Shop by Department</h3>
+            <ul>
+                <li><a href="{% url 'index' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+                {% for category in categories %}
+                    <li><a href="{% url 'product_list' %}?category={{ category.id }}"><i class="fas fa-tags"></i> {{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+            <h3>Account & Lists</h3>
+            <ul>
+                {% if user.is_authenticated %}
+                    {% if user.profile.role == 'seller' %}
+                        <li><a href="{% url 'seller_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Seller Dashboard</a></li>
+                        <li><a href="{% url 'seller_profile' %}"><i class="fas fa-user"></i> Seller Profile</a></li>
+                        <li><a href="{% url 'product_create' %}"><i class="fas fa-plus"></i> Add Product</a></li>
+                    {% elif user.profile.role == 'buyer' %}
+                        <li><a href="{% url 'customer_profile' %}"><i class="fas fa-user"></i> Your Account</a></li>
+                        <li><a href="{% url 'order_history' %}"><i class="fas fa-history"></i> Your Orders</a></li>
+                        <li><a href="{% url 'cart' %}"><i class="fas fa-shopping-cart"></i> Cart</a></li>
+                    {% elif user.profile.role == 'delivery' %}
+                        <li><a href="{% url 'delivery_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Delivery Dashboard</a></li>
+                        <li><a href="{% url 'delivery_pending' %}"><i class="fas fa-truck"></i> Pending Orders</a></li>
+                        <li><a href="{% url 'delivery_completed' %}"><i class="fas fa-check-circle"></i> Completed Orders</a></li>
+                        <li><a href="{% url 'delivery_profile' %}"><i class="fas fa-user"></i> Profile</a></li>
+                    {% endif %}
+                    <li>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <a href="#" onclick="this.closest('form').submit(); return false;"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a></li>
+                    <li><a href="{% url 'register_buyer' %}"><i class="fas fa-user-plus"></i> Create Buyer Account</a></li>
+                    <li><a href="{% url 'register_seller' %}"><i class="fas fa-store"></i> Create Seller Account</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="sidebar-overlay"></div>
+
+    <main class="container" style="max-width: var(--container-width); margin: 2rem auto; padding: 0 1rem;">
+        {% if messages %}
+            <div class="alerts">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% endif %}">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-top">
+            <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+                <div class="footer-grid">
+                    <div class="footer-column">
+                        <h3>Get to Know Us</h3>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About Us</a></li>
+                            <li><a href="{% url 'index' %}#careers"><i class="fas fa-briefcase"></i> Careers</a></li>
+                            <li><a href="{% url 'index' %}#press"><i class="fas fa-newspaper"></i> Press Releases</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Make Money with Us</h3>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'register_seller' %}"><i class="fas fa-store"></i> Sell on OrderTrack</a></li>
+                            <li><a href="{% url 'index' %}#affiliate"><i class="fas fa-handshake"></i> Affiliate Program</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>OrderTrack Payment</h3>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'index' %}#rewards"><i class="fas fa-credit-card"></i> OrderTrack Rewards</a></li>
+                            <li><a href="{% url 'index' %}#points"><i class="fas fa-coins"></i> Shop with Points</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Let Us Help You</h3>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'customer_profile' %}"><i class="fas fa-user"></i> Your Account</a></li>
+                            <li><a href="{% url 'order_history' %}"><i class="fas fa-history"></i> Your Orders</a></li>
+                            <li><a href="{% url 'login_delivery' %}"><i class="fas fa-truck"></i> Delivery Person Login</a></li>
+                            <li><a href="{% url 'contact_us' %}"><i class="fas fa-envelope"></i> Contact Us</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+                <p class="copyright">© 2025 OrderTrack. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarClose = document.querySelector('.sidebar-close');
+            const navLinks = document.querySelector('.nav-links');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+            function openSidebar() {
+                sidebar.classList.add('active');
+                if (navLinks) navLinks.classList.add('active');
+                if (sidebarOverlay) sidebarOverlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                if (navLinks) navLinks.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', openSidebar);
+            }
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+        });
+    </script>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropbtn = document.querySelector('.dropbtn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+    const dropdown = document.querySelector('.dropdown');
+
+    if (dropbtn && dropdownContent) {
+        dropbtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownContent.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+            }
+        });
+    }
+});
+</script>
+
+    <script src="{% static 'js/star_rating.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    {% block extra_js %}
+    
+    
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Checkout - OrderTrack{% endblock %}
+{% block content %}
+<div class="container checkout-container">
+    <h1 class="text-center my-4">🔒 Secure Checkout</h1>
+    <p class="text-center text-muted mb-4">You have {{ supercoin_balance }} Supercoins (₹{{ supercoin_balance|floatformat:2 }})</p>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" action="{% if order %}{% url 'checkout' order_id=order.id %}{% else %}#{% endif %}">
+                {% csrf_token %}
+                <!-- Shipping Address Card -->
+                {% if customer.addresses.exists %}
+                    <div class="mb-3">
+                        <label class="form-label">Select an existing address</label>
+                        {% for address in customer.addresses.all %}
+                            <div class="form-check address-option p-3 mb-2">
+                                <input class="form-check-input" type="radio" name="address_id" id="address-{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                                <label class="form-check-label" for="address-{{ address.id }}">
+                                    {{ address.address_text }}
+                                    {% if address.is_default %}<span class="badge bg-primary ms-2">Default</span>{% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-check address-option p-3 mb-2">
+                            <input class="form-check-input" type="radio" name="address_id" id="new-address" value="new">
+                            <label class="form-check-label" for="new-address">
+                                Add New Address
+                            </label>
+                        </div>
+                    </div>
+                    <hr>
+                {% endif %}
+                <div class="mb-3">
+                    <label class="form-label">Enter new address</label>
+                    {{ address_form.address_text|add_class:"form-control"|attr:"rows:3"|attr:"placeholder:Enter your full address" }}
+                    <div class="form-check mt-2">
+                        {{ address_form.is_default|add_class:"form-check-input" }}
+                        <label class="form-check-label" for="{{ address_form.is_default.id_for_label }}">Set as default address</label>
+                    </div>
+                </div>              
+                <!-- Payment Method Card -->
+                <div class="card checkout-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Payment Method</h5>
+                        {% for value, label in payment_methods %}
+                            <div class="form-check payment-option p-3 mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment-{{ value }}" value="{{ value }}" required>
+                                <label class="form-check-label" for="payment-{{ value }}">
+                                    {{ label }}
+                                    {% if value == "cod" %}<i class="fas fa-money-bill-wave ms-2"></i>{% endif %}
+                                    {% if value == "upi" %}<i class="fas fa-mobile-alt ms-2"></i>{% endif %}
+                                    {% if value == "card" %}<i class="fas fa-credit-card ms-2"></i>{% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Supercoin Application (inside the form) -->
+                <div class="input-group mb-2">
+                    <input type="number" name="supercoins_to_use" class="form-control" placeholder="Enter Supercoins" min="0" max="{{ max_supercoins }}" value="{{ supercoins_to_use|default_if_none:0 }}">
+                    <button type="submit" name="apply_supercoins" value="1" class="btn btn-outline-primary">Apply</button>
+                    <span class="input-group-text">1 Supercoin = ₹1.00</span>
+                </div>
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary checkout-btn w-100">Complete Order</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <!-- Order Summary Card (NO form here) -->
+            <div class="card checkout-card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    {% for item in cart_items %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid order-item-image">
+                                {% else %}
+                                    <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-1">{{ item.product.name }}</p>
+                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            </div>
+                            <p class="mb-0">₹{{ item.subtotal|floatformat:2 }}</p>
+                        </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₹{{ cart_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span>FREE</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Supercoins Used</span>
+                        <span>-₹{{ supercoins_to_use|default_if_none:0|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong>₹{{ final_amount|floatformat:2 }}</strong>
+                    </div>
+                    <p class="text-muted text-center mt-3"><i class="fas fa-lock"></i> Your payment is secure and encrypted</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>{% endblock %}

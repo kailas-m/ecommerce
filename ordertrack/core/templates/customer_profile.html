@@ -1,0 +1,128 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+</script>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Profile - OrderTrack{% endblock %}
+
+{% block content %}
+<div class="customer-profile-page w-full px-2 md:px-6 py-4">
+    <h1 class="text-3xl font-bold mb-4">Your Profile</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Supercoin Balance Card -->
+        <div class="bg-white p-4 shadow-md rounded-lg flex flex-col items-center justify-center">
+            <h2 class="text-xl font-semibold mb-2">Supercoin Balance</h2>
+            <p class="text-2xl font-bold text-blue-600 mb-1">{{ supercoin_balance }}</p>
+            <p class="text-gray-600">₹{{ supercoin_balance|floatformat:2 }}</p>
+        </div>
+        <!-- Personal Info Card -->
+        <div class="bg-white p-4 shadow-md rounded-lg col-span-2">
+            <h2 class="text-xl font-semibold mb-2">Personal Information</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.name != "address" and field.name != "shipping_address" and field.name != "billing_address" %}
+                    <div>
+                        <label class="block text-sm font-medium">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <p class="text-red-500 text-sm">{{ field.errors }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <!-- Add Address Card -->
+        <div class="bg-white p-4 shadow-md rounded-lg">
+            <h2 class="text-xl font-semibold mb-2">Add New Address</h2>
+            <form method="post" action="{% url 'add_address' %}" class="space-y-4">
+                {% csrf_token %}
+                {% for field in address_form %}
+                <div>
+                    <label class="block text-sm font-medium">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="text-red-500 text-sm">{{ field.errors }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Add Address</button>
+            </form>
+        </div>
+        <!-- Account Settings Card -->
+        <div class="bg-white p-4 shadow-md rounded-lg">
+            <h2 class="text-xl font-semibold mb-2">Account Settings</h2>
+            <a href="{% url 'password_change' %}" class="block text-blue-500 hover:underline mb-2">Change Password</a>
+            <a href="{% url 'customer_dashboard' %}" class="block text-blue-500 hover:underline">Back to Dashboard</a>
+        </div>
+    </div>
+
+    {% if customer.addresses.exists %}
+    <div class="mt-4">
+        <h2 class="text-xl font-semibold mb-2">Your Addresses</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for address in customer.addresses.all %}
+            <div class="bg-white p-4 shadow-md rounded-lg flex flex-col justify-between h-full">
+                <p class="mb-2">{{ address.address_text }}</p>
+                {% if address.is_default %}
+                <p class="text-green-500 font-semibold mb-2">Default</p>
+                {% else %}
+                <form method="post" action="{% url 'set_default_address' address.id %}" class="mb-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary btn-sm">Set as Default</button>
+                </form>
+                {% endif %}
+                <form method="post" action="{% url 'delete_address' address.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline btn-sm text-red-500">Delete</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

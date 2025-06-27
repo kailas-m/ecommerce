@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Shopping Cart{% endblock %}
+{% block content %}
+<div class="container cart-container">
+    <h1 class="text-center my-4">🛒 Your Cart</h1>
+    {% if cart_items %}
+        <div class="row">
+            {% for item in cart_items %}
+                <div class="col-12 mb-4">
+                    <div class="card cart-item-card">
+                        <div class="row g-0">
+                            <div class="col-md-3 d-flex align-items-center justify-content-center">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" class="img-fluid rounded-start cart-item-image" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <i class="fas fa-image fa-4x text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ item.product.name }}</h5>
+                                    <p class="card-text price-text">
+                                        {% if item.product.discount_percent > 0 %}
+                                            <span class="text-danger discount-text">Save {{ item.product.discount_percent }}%</span><br>
+                                            <span class="original-price">₹{{ item.product.price|floatformat:2 }}</span>
+                                            <span class="discounted-price">₹{{ item.product.discounted_price|floatformat:2 }}</span>
+                                        {% else %}
+                                            <span class="discounted-price">₹{{ item.product.price|floatformat:2 }}</span>
+                                        {% endif %}
+                                    </p>
+                                    <div class="quantity-section">
+                                        <span>Quantity:</span>
+                                        <form method="post" action="{% url 'update_cart' item.product.id %}" class="d-inline-block">
+                                            {% csrf_token %}
+                                            <div class="input-group quantity-group">
+                                                <button type="submit" name="action" value="decrease" class="btn btn-outline-secondary quantity-btn">-</button>
+                                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control quantity-input" readonly>
+                                                <button type="submit" name="action" value="increase" class="btn btn-outline-secondary quantity-btn">+</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <p class="card-text subtotal-text">Subtotal: <span>₹{{ item.subtotal|floatformat:2 }}</span></p>
+                                    <form method="post" action="{% url 'remove_from_cart' item.product.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger remove-btn">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Cart Summary</h5>
+                        <p class="card-text">Items: <span class="summary-value">{{ cart_items|length }}</span></p>
+                        <p class="card-text">Total: <span class="summary-value">₹{{ cart_total|floatformat:2 }}</span></p>
+                        <p class="card-text">You have <span class="summary-value">{{ supercoin_balance }}</span> Supercoins</p>
+                        <a href="{% url 'checkout' %}" class="btn btn-primary checkout-btn w-100">Proceed to Checkout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center empty-cart">
+            <h2>Your cart is empty</h2>
+            <a href="{% url 'index' %}" class="btn btn-primary shop-now-btn">Shop Now</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

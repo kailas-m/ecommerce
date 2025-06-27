@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <h2 class="mb-4">Customers</h2>
+        {% if customers %}
+        <div class="product-grid">
+            {% for customer in customers %}
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ customer.name }}</h3>
+                    <p class="card-text">Email: {{ customer.email }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center">No customers found.</p>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">No customers found.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

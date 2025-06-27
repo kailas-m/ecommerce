@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delivery Dashboard - OrderTrack{% endblock %}
+
+{% block content %}
+<div class="container d-flex gap-3">
+  <!-- Sidebar -->
+  <div class="sidebar" style="flex: 0 0 250px;">
+    <div class="sidebar-header">
+      <h3>Delivery Menu</h3>
+    </div>
+    <div class="sidebar-content">
+      <ul>
+        <li><a href="{% url 'delivery_dashboard' %}" class="active">All Orders</a></li>
+        <li><a href="{% url 'delivery_pending' %}">Pending Orders</a></li>
+        <li><a href="{% url 'delivery_completed' %}">Completed Orders</a></li>
+        <li><a href="{% url 'delivery_profile' %}">Profile</a></li>
+        <li><a href="{% url 'logout' %}">Sign Out</a></li>
+      </ul>
+    </div>
+  </div>
+  <!-- Main Content -->
+  <div class="main-content" style="flex: 1;">
+    <h2 class="text-center">Delivery Dashboard</h2>
+    <p class="text-center">Welcome, {{ delivery_person.name }}</p>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="alerts">
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Search and Filter -->
+    <div class="d-flex gap-2" style="margin-bottom: 1rem;">
+      <input type="text" id="orderSearch" class="form-control" placeholder="Search by Order ID or Customer">
+      <select id="statusFilter" class="form-control">
+        <option value="">All Statuses</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+      </select>
+    </div>
+    <!-- Orders Table -->
+    <div class="table-container">
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th data-sort="order_id">Order ID <i class="fas fa-sort"></i></th>
+            <th data-sort="customer">Customer <i class="fas fa-sort"></i></th>
+            <th>Items</th>
+            <th>Shipping Address</th>
+            <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+            <th>Assigned To</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody">
+          {% if orders %}
+            {% for order in orders %}
+            <tr data-status="{{ order.status }}">
+              <td>{{ order.id }}</td>
+              <td>{{ order.customer.name }}</td>
+              <td>
+                <ul class="item-list">
+                  {% for item in order.items.all %}
+                  <li>{{ item.quantity }} x {{ item.product.name }}</li>
+                  {% endfor %}
+                </ul>
+              </td>
+              <td>{{ order.shipping_address }}</td>
+              <td>
+                <span class="badge status-{{ order.status }}">
+                  {{ order.get_status_display }}
+                </span>
+              </td>
+              <td>
+                {% if order.delivery_person %}
+                  {{ order.delivery_person.name }}
+                {% else %}
+                  Unassigned
+                {% endif %}
+              </td>
+              <td>
+                {% if not order.delivery_person %}
+                  <form method="post" action="{% url 'delivery_dashboard' %}" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="action" value="accept">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      <i class="fas fa-check"></i> Accept
+                    </button>
+                  </form>
+                {% elif order.delivery_person == delivery_person %}
+                  {% if order.payment and order.payment.payment_method == 'cod' and order.payment.status != 'completed' %}
+                    <div class="alert alert-error mb-1">
+                      COD: Collect payment on delivery!
+                    </div>
+                    <form method="post" action="{% url 'delivery_dashboard' %}" class="d-flex gap-2">
+                      {% csrf_token %}
+                      <input type="hidden" name="order_id" value="{{ order.id }}">
+                      <input type="hidden" name="action" value="confirm_payment">
+                      <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fas fa-money-check-alt"></i> Confirm Payment
+                      </form>
+                  {% endif %}
+                  {% if order.status == 'delivered' %}
+                    <span class="badge badge-success">Completed</span>
+                  {% else %}
+                    {% if order.payment and order.payment.payment_method == 'cod' %}
+                      {% if order.payment.status == 'completed' %}
+                        <form method="post" action="{% url 'delivery_dashboard' %}" class="d-flex gap-2">
+                          {% csrf_token %}
+                          <input type="hidden" name="order_id" value="{{ order.id }}">
+                          <input type="hidden" name="action" value="complete">
+                          <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-flag-checkered"></i> Mark as Complete
+                          </button>
+                        </form>
+                      {% else %}
+                        <span class="text-muted">Confirm payment before completing</span>
+                      {% endif %}
+                    {% else %}
+                      <form method="post" action="{% url 'delivery_dashboard' %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <input type="hidden" name="action" value="complete">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                          <i class="fas fa-flag-checkered"></i> Mark as Complete
+                        </button>
+                      </form>
+                    {% endif %}
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">No actions</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center text-muted">No pending orders found.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  // Search Functionality
+  document.getElementById('orderSearch').addEventListener('input', function() {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#orderTableBody tr');
+    rows.forEach(row => {
+      const orderId = row.cells[0].textContent.toLowerCase();
+      const customer = row.cells[1].textContent.toLowerCase();
+      row.style.display = (orderId.includes(searchValue) || customer.includes(searchValue)) ? '' : 'none';
+    });
+  });
+
+  // Status Filter
+  document.getElementById('statusFilter').addEventListener('change', function() {
+    const status = this.value;
+    const rows = document.querySelectorAll('#orderTableBody tr');
+    rows.forEach(row => {
+      row.style.display = status ? row.dataset.status === status ? '' : 'none' : '';
+    });
+  });
+
+  // Table Sorting
+  document.querySelectorAll('.order-table th[data-sort]').forEach(header => {
+    header.addEventListener('click', () => {
+      const sortKey = header.dataset.sort;
+      const rows = Array.from(document.querySelectorAll('#orderTableBody tr'));
+      const isAscending = header.classList.toggle('sort-asc');
+      header.classList.toggle('sort-desc', !isAscending);
+
+      rows.sort((a, b) => {
+        const aValue = a.cells[sortKey === 'order_id' ? 0 : sortKey === 'customer' ? 1 : 4].textContent;
+        const bValue = b.cells[sortKey === 'order_id' ? 0 : sortKey === 'customer' ? 1 : 4].textContent;
+        return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      });
+
+      const tbody = document.getElementById('orderTableBody');
+      rows.forEach(row => tbody.appendChild(row));
+    });
+  });
+</script>
+{% endblock %}

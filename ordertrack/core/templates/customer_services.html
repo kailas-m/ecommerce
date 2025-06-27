@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Customer Service - OrderTrack{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <h2 class="mb-4 text-center">Customer Service</h2>
+        <div class="row mb-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-2x mb-3 text-primary"></i>
+                        <h5 class="card-title">Help Center</h5>
+                        <p class="card-text">Find answers to common questions about orders, payments, shipping, and more.</p>
+                        <a href="{% url 'contact_us' %}"class="btn btn-outline-primary btn-sm">Visit Help Center</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-truck fa-2x mb-3 text-success"></i>
+                        <h5 class="card-title">Track Your Order</h5>
+                        <p class="card-text">Check the status and details of your recent orders and deliveries.</p>
+                        <a href="{% url 'order_history' %}" class="btn btn-outline-success btn-sm">Track Orders</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-cog fa-2x mb-3 text-warning"></i>
+                        <h5 class="card-title">Your Account</h5>
+                        <p class="card-text">Manage your profile, addresses, and account settings securely.</p>
+                        <a href="{% url 'customer_profile' %}" class="btn btn-outline-warning btn-sm">Go to Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Contact Customer Support</h4>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6><i class="fas fa-envelope text-primary"></i> Email</h6>
+                        <p class="mb-1">support@ordertrack.com</p>
+                        <h6><i class="fas fa-phone text-success"></i> Phone</h6>
+                        <p class="mb-0">+91 98765 43210 (Mon-Fri, 9am-6pm)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6><i class="fas fa-comments text-info"></i> Live Chat</h6>
+                        <p>Chat with our support team for instant help.</p>
+                        <a href="{% url 'index' %}#livechat" class="btn btn-info btn-sm text-white">Start Chat</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Login as Seller{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4">Login as Seller</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_password" class="form-label">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <p>Don't have an account?</p>
+                <a href="{% url 'register_seller' %}" class="btn btn-outline-secondary">Register as Seller</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

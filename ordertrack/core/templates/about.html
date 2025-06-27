@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About Us - OrderTrack{% endblock %}
+
+{% block content %}
+<section class="py-5 about-section">
+    <div class="container">
+        <h1 class="text-center mb-4">About OrderTrack</h1>
+        <div class="row align-items-center mb-5">
+            <div class="col-md-6 mb-4 mb-md-0 d-flex align-items-center justify-content-center" style="height: 320px;">
+                <img src="{% static 'images/about.png' %}" alt="About OrderTrack" class="img-fluid rounded shadow" style="max-height: 300px; object-fit: contain;">
+            </div>
+            <div class="col-md-6">
+                <h3 class="mb-3">Shop Smart, Save Big</h3>
+                <p>
+                    <strong>OrderTrack</strong> is your one-stop destination for seamless online shopping. We connect buyers and sellers across India, offering a wide range of products, secure payments, and reliable delivery. Our platform is designed to make your shopping experience smooth, transparent, and rewarding.
+                </p>
+                <ul class="list-unstyled mb-3">
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Trusted Sellers & Verified Products</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Easy Order Tracking & Real-Time Updates</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Secure Payments & Buyer Protection</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> 24/7 Customer Support</li>
+                </ul>
+                <a href="{% url 'product_list' %}" class="btn btn-primary">Start Shopping</a>
+            </div>
+        </div>
+
+        <div class="row text-center mb-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                        <h5 class="card-title">Our Mission</h5>
+                        <p class="card-text">To empower every Indian to shop and sell online with confidence, convenience, and joy.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <i class="fas fa-bullseye fa-2x text-success mb-3"></i>
+                        <h5 class="card-title">Our Vision</h5>
+                        <p class="card-text">To be India’s most customer-centric marketplace, where people can discover anything they want to buy or sell.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <i class="fas fa-heart fa-2x text-danger mb-3"></i>
+                        <h5 class="card-title">Why Choose Us?</h5>
+                        <p class="card-text">We blend technology, trust, and transparency to deliver a delightful shopping experience for everyone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-5">
+            <div class="col-md-6 order-md-2 mb-4 mb-md-0 d-flex align-items-center justify-content-center" style="height: 320px;">
+                <img src="{% static 'images/teamwork.png' %}" alt="Our Team" class="img-fluid rounded shadow" style="max-height: 300px; object-fit: contain;">
+            </div>
+            <div class="col-md-6 order-md-1">
+                <h3 class="mb-3">Meet Our Team</h3>
+                <p>
+                    Our passionate team of developers, designers, and support staff work tirelessly to bring you the best of e-commerce. We believe in innovation, integrity, and putting our users first.
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-user-tie text-info me-2"></i> Experienced Leadership</li>
+                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Creative Thinkers</li>
+                    <li><i class="fas fa-headset text-primary me-2"></i> Dedicated Support</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h4 class="mb-3">Want to know more?</h4>
+            <a href="{% url 'customer_list' %}" class="btn btn-outline-secondary me-2"><i class="fas fa-users"></i> Meet Our Customers</a>
+            <a href="{% url 'category_list' %}" class="btn btn-outline-primary me-2"><i class="fas fa-tags"></i> Browse Categories</a>
+            <a href="{% url 'customer_profile' %}" class="btn btn-outline-success"><i class="fas fa-user"></i> Your Account</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

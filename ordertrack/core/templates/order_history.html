@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History - OrderTrack{% endblock %}
+
+{% block content %}
+    <section class="order-history py-4">
+        <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+            <h1 class="text-center">Order History</h1>
+            {% if orders %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Supercoins Used</th>
+                                        <th>Discount</th>
+                                        <th>Final Paid</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td>{{ order.id }}</td>
+                                            <td>{{ order.created_at|date:"F d, Y H:i" }}</td>
+                                            <td>
+                                                <span class="badge status-{{ order.status|lower }}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% for item in order.items.all %}
+                                                    <div class="order-item">
+                                                        {{ item.product.name }} (x{{ item.quantity }})
+                                                        {% if item.product.discount_percent and item.product.discount_percent > 0 %}
+                                                            <span style="text-decoration: line-through; color: var(--anime-text);">₹{{ item.product.price|floatformat:2 }}</span>
+                                                            <span>₹{{ item.product.discounted_price|floatformat:2 }}</span>
+                                                            <span class="badge" style="background: var(--anime-danger);">{{ item.product.discount_percent }}% OFF</span>
+                                                        {% else %}
+                                                            <span>₹{{ item.product.price|floatformat:2 }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            </td>
+                                            <td>₹{{ order.total_price|floatformat:2 }}</td>
+                                            <td>{{ order.supercoins_used }}</td>
+                                            <td>-₹{{ order.supercoin_discount|floatformat:2 }}</td>
+                                            <td>
+                                                <div class="d-flex justify-content-between" style="font-size: 1.3em;">
+                                                    <strong class="text-success">Final Paid</strong>
+                                                    <strong class="text-success" style="font-size:1.4em;">
+                                                        ₹{{ order.final_paid|floatformat:2 }}
+                                                    </strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'order_detail' order.id %}" class="btn btn-outline">View Details</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <p>You have no orders yet.</p>
+                        <a href="{% url 'product_list' %}" class="btn btn-primary">Shop Now</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

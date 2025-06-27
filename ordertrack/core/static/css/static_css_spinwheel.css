@@ -1,0 +1,22 @@
+#wheel-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#wheel {
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+#spin-btn {
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#result {
+    font-weight: bold;
+    color: #333;
+}

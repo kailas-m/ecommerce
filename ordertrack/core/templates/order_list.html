@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Orders - OrderTrack{% endblock %}
+
+{% block content %}
+    <section class="order-list py-4">
+        <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+            <h1 class="text-center">Orders</h1>
+            {% if orders %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered align-middle text-center order-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Final Paid</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td>{{ order.id }}</td>
+                                            <td>{{ order.created_at|date:"F d, Y H:i" }}</td>
+                                            <td>{{ order.customer.user.username }}</td>
+                                            <td>₹{{ order.total_price|floatformat:2 }}</td>
+                                            <td>
+                                                <span class="badge status-{{ order.status|lower }}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong class="text-success">
+                                                    ₹{{ order.final_paid|floatformat:2 }}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <p>No orders found.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

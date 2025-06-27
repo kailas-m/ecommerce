@@ -1,0 +1,158 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.id }} - OrderTrack{% endblock %}
+
+{% block content %}
+    <section class="order-detail py-4">
+        <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 1rem;">
+            <h1 class="text-center">Order #{{ order.id }}</h1>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="order-info mb-4">
+                        <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                        <p><strong>Status:</strong> <span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span></p>
+                        <p><strong>Shipping Address:</strong> {{ order.shipping_address|default:"Not provided" }}</p>
+                        <p><strong>Billing Address:</strong> {{ order.billing_address|default:"Not provided" }}</p>
+                        <p><strong>Note:</strong> {{ order.note|default:"None" }}</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="order-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in items_with_review_status %}
+                                    {% with item=entry.item %}
+                                        <tr>
+                                            <td>
+                                                {{ item.product.name }}
+                                                {% if item.product.discount_percent and item.product.discount_percent > 0 %}
+                                                    <span class="badge" style="background: var(--anime-danger);">{{ item.product.discount_percent }}% OFF</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>
+                                                {% if item.product.discount_percent and item.product.discount_percent > 0 %}
+                                                    <span style="text-decoration: line-through; color: var(--anime-text);">₹{{ item.product.price|floatformat:2 }}</span>
+                                                    <span>₹{{ item.product.discounted_price|floatformat:2 }}</span>
+                                                {% else %}
+                                                    <span>₹{{ item.product.price|floatformat:2 }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>₹{{ item.total_price|floatformat:2 }}</td>
+                                            <td>
+                                                {% if item.product.stock > 0 and user.profile.is_buyer %}
+                                                    <form method="post" action="{% url 'add_to_cart' item.product.id %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="badge" style="background: var(--anime-danger);">Out of Stock</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if order.status == 'delivered' and user.profile.is_buyer and not entry.has_review %}
+                                            <tr>
+                                                <td colspan="5">
+                                                    <div class="card mt-2">
+                                                        <div class="card-body">
+                                                            <h5>Review {{ item.product.name }}</h5>
+                                                            <form method="post" action="{% url 'add_review' entry.product_id %}">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                                <div class="form-group mb-3">
+                                                                    <label>Rating:</label>
+                                                                    <div class="star-rating">
+                                                                        {% for i in "54321" %}
+                                                                            <input type="radio" id="star{{ i }}-{{ item.id }}" name="rating" value="{{ i }}">
+                                                                            <label for="star{{ i }}-{{ item.id }}" title="{{ i }} stars">&#9733;</label>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group mb-3">
+                                                                    <label for="comment-{{ item.id }}">Comment:</label>
+                                                                    <textarea id="comment-{{ item.id }}" name="comment" class="form-control" rows="3" placeholder="Write your review..."></textarea>
+                                                                </div>
+                                                                <button type="submit" class="btn btn-primary">Submit Review</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                                    <td>₹{{ order.total_price|floatformat:2 }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+    <span>Supercoins Used</span>
+    <span>-₹{{ order.supercoin_discount|floatformat:2 }}</span>
+</div>
+<div class="d-flex justify-content-between" style="font-size: 1.3em;">
+    <strong class="text-success">Final Paid</strong>
+    <strong class="text-success" style="font-size:1.4em;">
+        ₹{{ order.final_paid|floatformat:2 }}
+    </strong>
+</div>
+                    <div class="card-actions text-center mt-4">
+                        <a href="{% url 'order_history' %}" class="btn btn-outline">Back to Orders</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
